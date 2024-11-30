@@ -89,7 +89,8 @@ def _cross_entropy_forward(
         if DO_LOGIT_SCALING: x = LOGIT_SCALE * x
         # Do logit softcapping for Gemma 2: t * tanh(1/t * x)
         if DO_SOFTCAPPING:   x = SOFTCAP * triton_tanh(x / SOFTCAP)
-        loss = logsumexp - x
+        # loss = logsumexp - x
+        loss = logsumexp - x.to(tl.float32)
     else:
         loss = 0.0
     tl.store(logsumexp_ptr, logsumexp)
@@ -170,7 +171,8 @@ def _chunked_cross_entropy_forward(
             if DO_LOGIT_SCALING: x = LOGIT_SCALE * x
             # Do logit softcapping for Gemma 2: t * tanh(1/t * x)
             if DO_SOFTCAPPING:   x = SOFTCAP * triton_tanh(x / SOFTCAP)
-            loss = -1.0 * x
+            # loss = -1.0 * x
+            loss = -1.0 * x.to(tl.float32)
         else:
             loss = 0.0
         tl.store(loss_ptr, loss)
